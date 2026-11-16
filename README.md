@@ -112,7 +112,5 @@ ai-customer-sentiment-emergency-alerter/
 
 ## 📬 Contact & Connect
 
-Built with 💡 by **Orion Saha (Ferdous Hasan Maruf)** — *AI Workflow Automation & No-Code/Low-Code Builder*
-
 - **GitHub:** [@fhm16](https://github.com/fhm16)
 - **Email:** [ferdoushasanmaruf16@gmail.com](mailto:ferdoushasanmaruf16@gmail.com)
