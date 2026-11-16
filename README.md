@@ -1,141 +1,118 @@
-<div align="center">
+# 🚨 AI Customer Sentiment Analyzer & Emergency Alerter
 
-# 🍱 AI-Powered Cloud Kitchen Food Waste & Predictive Procurement Engine
+![n8n](https://img.shields.io/badge/n8n-Workflow%20Automation-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3%20Flash%20Preview-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white)
+![Telegram Bot](https://img.shields.io/badge/Telegram-Instant%20Alerts-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)
+![Google Sheets](https://img.shields.io/badge/Google%20Sheets-CX%20Analytics-34A853?style=for-the-badge&logo=googlesheets&logoColor=white)
+![Cost](https://img.shields.io/badge/Operating%20Cost-$0%20%2F%20Zero--Cost-brightgreen?style=for-the-badge)
 
-**An automated, $0-cost local AI supply chain pipeline that predicts next-day ingredient demand, prevents perishable spoilage, and sends nightly purchase briefings to kitchen managers.**
-
-[![n8n](https://img.shields.io/badge/Orchestrator-n8n_Self--Hosted-FF6D5A?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io/)
-[![Ollama](https://img.shields.io/badge/Local_LLM-Qwen_2.5_7B-000000?style=for-the-badge)](https://ollama.com/)
-[![OpenWeather](https://img.shields.io/badge/Weather_API-OpenWeatherMap-EB6E4B?style=for-the-badge)](https://openweathermap.org/)
-[![Telegram](https://img.shields.io/badge/HITL_Alerts-Telegram_Bot-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots)
-[![Cost](https://img.shields.io/badge/Operating_Cost-%240%2Fmonth-2EA44F?style=for-the-badge)](#)
-
-[🎥 Watch Live Demo](#-live-end-to-end-demo) • [🏗️ Architecture](#️-system-architecture) • [🧠 AI Forecasting Rules](#-ai-supply-chain--spoilage-logic) • [🚀 Setup Guide](#-quick-setup-guide) • [📬 Contact](#-contact)
-
-</div>
+A **100% zero-cost, real-time Customer Experience (CX) automation system** built with **n8n** and **Google Gemini API**. It captures incoming customer feedback, performs deterministic AI sentiment classification, triggers instant **Human-in-the-Loop (HITL)** emergency alerts on Telegram for negative reviews, and logs all structured metrics into Google Sheets for CX analytics.
 
 ---
 
-## 🎥 Live End-to-End Demo
+## 🎥 Live Video Walkthrough
 
-Click the preview below to watch the complete workflow execution—from parallel Google Sheets & OpenWeatherMap ingestion to local **Qwen 2.5 7B** reasoning and real-time **Telegram** manager delivery:
+Watch the full end-to-end live demonstration of the workflow in action:
 
-<div align="center">
-  <a href="https://youtu.be/mHDpcFTsINg?si=pSM3X2njR2f-qJ2a" target="_blank">
-    <img src="https://img.youtube.com/vi/mHDpcFTsINg/hqdefault.jpg" alt="AI Cloud Kitchen Food Waste Predictor Demo" width="720" />
-  </a>
-  <br />
-  <p>▶️ <a href="https://youtu.be/mHDpcFTsINg?si=pSM3X2njR2f-qJ2a" target="_blank"><b>Watch Full Walkthrough Video on YouTube</b></a></p>
-</div>
+[![Watch the Demo Video](https://img.youtube.com/vi/R_kQBFPZDQk/maxresdefault.jpg)](https://youtu.be/R_kQBFPZDQk?si=BCn-4X_eLFvuAjVa)
+
+👉 **[Click here to watch the full demo on YouTube](https://youtu.be/R_kQBFPZDQk?si=BCn-4X_eLFvuAjVa)**
 
 ---
 
-## 🎯 Problem Statement & Business Impact
+## 🎯 Business Problem & Solution
 
-Cloud kitchens and delivery-first restaurants lose significant margins every week to two preventable issues: **over-ordering short-shelf-life perishables** (leading to spoilage waste) and **under-ordering before rainy weather** (causing stockouts during online delivery surges).
+### The Problem
+Businesses collecting customer feedback via forms or surveys often discover critical complaints hours or days later. Meanwhile, relying on AI to automatically reply to angry customers risks hallucinated refund promises, robotic tone, and brand damage.
 
-| Metric / Area | Operational Impact |
-| :--- | :--- |
-| **Perishable Waste Reduction** | Enforces strict shelf-life caps (`Shelf_Life_Days <= 2`) so high-risk proteins are never over-stocked to static par levels. |
-| **Weather-Aware Revenue Capture** | Automatically scales demand by **1.25x (+25%)** when next-day precipitation probability reaches $\ge 50\%$. |
-| **Zero Recurring Cost ($0/Month)** | Runs 100% locally via Docker, Ollama, and free-tier APIs—eliminating SaaS subscriptions and token fees. |
-| **100% Data Privacy** | Sensitive restaurant sales and inventory logs never leave the local machine for LLM inference. |
-| **Time Saved** | Automates nightly spreadsheet reconciliation at **10:00 PM**, saving **30–45 minutes** of manual manager prep daily. |
+### The Solution
+- **Instant AI Triage:** Every new review is analyzed within seconds using `gemini-3-flash-preview` to extract **Sentiment**, **Score (1–5)**, and **Urgency**.
+- **Human-in-the-Loop Escalation:** Negative reviews (`Sentiment: Negative`) bypass automated replies and immediately fire an **Emergency Alert** to the support team's Telegram with customer contact details for rapid human resolution.
+- **Centralized CX Reporting:** Every single review (Positive, Neutral, and Negative) is parsed and appended to a structured **Customer Analytics Log** in Google Sheets.
+- **Zero-Cost Architecture:** Built entirely on free-tier tools (self-hosted n8n, Google AI Studio Free Tier, Google Sheets, and Telegram Bot API).
 
 ---
 
 ## 🏗️ System Architecture
 
-```text
-[Nightly Cron Trigger (10:00 PM)]
-        ├──► [Google Sheets: Daily_Sales] ────────┐
-        ├──► [Google Sheets: Current_Inventory] ──┼──► [Merge Node] ──► [JS Data Shaper]
-        └──► [OpenWeatherMap: 24h Forecast] ──────┘                           │
-                                                                              ▼
-[Telegram Manager Alert] ◄── [JS Report Formatter] ◄── [Local Ollama: Qwen 2.5 7B]
+```mermaid
+flowchart LR
+    A[Google Form Submission] --> B[Google Sheets Trigger]
+    B --> C[Google Gemini AI<br/>Sentiment & Urgency JSON]
+    C --> D{Switch Node<br/>Contains 'Negative'?}
+    C --> E[Google Sheets<br/>Customer Analytics Log]
+    D -- Yes --> F[Telegram Bot<br/>Emergency Human Alert]
+    D -- No --> G[Logged Only]
 ```
 
-### Visual Execution Preview
-
-| n8n Automation Canvas | Telegram Manager Briefing |
-| :---: | :---: |
-| ![n8n Workflow Canvas](assets/workflow-canvas.png) | ![Telegram Report Preview](assets/telegram-report-preview.png) |
-
 ---
 
-## 🧠 AI Supply Chain & Spoilage Logic
+## 📸 Live System Proof
 
-The `Ask Qwen 2.5` node runs **`qwen2.5:7b`** in deterministic JSON mode (`temperature: 0.1`, `num_ctx: 2048`) and evaluates every raw ingredient through a 4-stage mathematical pipeline:
+### 1. n8n Automation Workflow
+End-to-end pipeline handling polling, Gemini JSON extraction, conditional routing, Telegram alerting, and parallel Google Sheets logging.
+![n8n Workflow Canvas](assets/workflow-canvas.png)
 
-1. **Weighted Baseline Demand:** Blends immediate sales momentum with 7-day averages:
-   $$\text{Baseline Demand} = \text{round}((\text{Units\_Sold} \times 0.4) + (\text{Avg\_Daily\_Sales\_7d} \times 0.6))$$
-2. **Weather Surge Multiplier:** Sets `weather_multiplier = 1.25` if `rain_expected == true` or `max_rain_probability_percent >= 50`; otherwise `1.0`.
-   $$\text{Adjusted Demand} = \lceil \text{Baseline Demand} \times \text{Weather Multiplier} \rceil$$
-3. **Perishability & Spoilage Guardrail:**
-   * **High-Risk Perishables (`Shelf_Life_Days <= 2`):** Caps `target_stock` at $\lceil \text{Adjusted Demand} \times 1.15 \rceil$, overriding higher `Min_Par_Level` values to prevent spoilage.
-   * **Standard Items (`Shelf_Life_Days >= 3`):** Sets `target_stock = max(Adjusted Demand, Min_Par_Level)`.
-4. **Net Procurement Quantity:**
-   $$\text{Recommended Order Qty} = \max(0, \text{Target Stock} - \text{Current Stock})$$
+### 2. Real-Time Telegram Emergency Alert
+Instant mobile notification delivered to the CX team whenever a negative review is detected.
+![Telegram Emergency Alert](assets/telegram-alert-demo.jpg)
 
----
-
-## 🛠️ Engineering & Production Hardening
-
-* **Docker-to-Host Network Bridging:** Configured n8n inside Docker Desktop to communicate reliably with Windows-hosted Ollama via `http://host.docker.internal:11434/api/chat`.
-* **Local CPU Inference Optimization:** Tuned context window (`num_ctx: 2048`), extended HTTP node timeout to `300,000 ms`, and enabled automatic retry backoff (`maxTries: 2`, `5000 ms` wait) to guarantee zero failures during cold model loads on an AMD Ryzen 5 (16 GB RAM) machine.
-* **Payload Token Compression:** Pre-processed raw 3-hour weather intervals and stripped Google Sheet metadata (`row_number`) in JavaScript before LLM inference to keep prompts compact and deterministic.
+### 3. Automated CX Analytics Log
+Structured sentiment scores and urgency levels automatically recorded for reporting and trend tracking.
+![Google Sheets Analytics Log](assets/analytics-sheet-log.png)
 
 ---
 
 ## 📂 Repository Structure
 
 ```text
-cloud-kitchen-procurement-forecast/
-├── workflows/
-│   └── kitchen-procurement-workflow.json   # Sanitized, import-ready n8n workflow
-├── data/
-│   ├── daily_sales_sample.csv              # Sample POS daily sales schema
-│   └── current_inventory_sample.csv        # Sample ingredient & shelf-life schema
-├── docs/
-│   ├── qwen-supply-chain-prompt.md         # System prompt & supply chain math rules
-│   └── setup-and-hardening.md              # Docker networking & timeout tuning notes
+ai-customer-sentiment-emergency-alerter/
 ├── assets/
-│   ├── workflow-canvas.png                 # Full n8n execution screenshot
-│   └── telegram-report-preview.png         # Formatted Telegram output preview
-├── .env.example                            # Required API & environment variables template
-├── .gitignore                              # Security & OS ignore rules
-└── README.md                               # Project documentation
+│   ├── workflow-canvas.png          # Full n8n workflow screenshot
+│   ├── telegram-alert-demo.jpg      # Live Telegram emergency notification proof
+│   └── analytics-sheet-log.png      # Structured Google Sheets log output
+├── data/
+│   ├── sample-reviews.csv           # Sample customer feedback input
+│   └── gemini-output-example.json   # Deterministic JSON output from Gemini
+├── docs/
+│   ├── setup-guide.md               # Step-by-step deployment instructions
+│   └── prompt-engineering.md        # JSON prompt design & HITL architecture notes
+├── workflows/
+│   └── customer-sentiment-analyzer.json  # Sanitized, import-ready n8n workflow
+├── .env.example                     # Required environment variables template
+├── .gitignore                       # Security rules to exclude secrets & raw backups
+└── README.md                        # Project overview & documentation
 ```
 
 ---
 
-## 🚀 Quick Setup Guide
+## 🚀 Quick Start
 
-1. **Install & Pull Local LLM:**
+1. **Clone this repository:**
    ```bash
-   ollama pull qwen2.5:7b
+   git clone [https://github.com/fhm16/ai-customer-sentiment-emergency-alerter.git](https://github.com/fhm16/ai-customer-sentiment-emergency-alerter.git)
    ```
-2. **Set Up Google Sheets:**
-   Create a workbook named `Kitchen_Procurement_Data` with two tabs (`Daily_Sales` and `Current_Inventory`) matching the CSV schemas in `/data`.
-3. **Import Workflow into n8n:**
-   Open your self-hosted n8n instance, create a new workflow, and import `workflows/kitchen-procurement-workflow.json`.
-4. **Configure Credentials:**
-   Using `.env.example` as a reference, attach your **Google Sheets OAuth2** credentials, **OpenWeatherMap API Key** (free 5-day/3-hour forecast endpoint), and **Telegram Bot Token + Chat ID**.
-5. **Activate Pipeline:**
-   Toggle the workflow to **Active** to trigger automated procurement briefings every night at **10:00 PM**.
+2. **Import the Workflow into n8n:**
+   - Open n8n and import `workflows/customer-sentiment-analyzer.json`.
+3. **Connect Your Free-Tier Credentials:**
+   - **Google Sheets:** Connect OAuth2 credentials for both the Input Form Sheet and the Analytics Log Sheet.
+   - **Google Gemini:** Add your free API key from [Google AI Studio](https://aistudio.google.com/).
+   - **Telegram:** Add your Bot Token from `@BotFather` and set your target `Chat ID`.
+4. **Activate:** Toggle the workflow to **Active** in n8n.
+
+👉 For detailed configuration steps, read the **[Step-by-Step Setup Guide](docs/setup-guide.md)** and **[Prompt Engineering Notes](docs/prompt-engineering.md)**.
 
 ---
 
-## 🔮 Future Roadmap
-
-* **Interactive Telegram Approval Buttons:** Upgrade the Telegram node to `Send and Wait for Response` with inline `✅ Approve Order` / `✏️ Edit Qty` callbacks that automatically log confirmed purchase orders back into Google Sheets.
-* **Multi-Ingredient Recipe BOM Mapping:** Expand the inventory schema to map single menu items to multiple raw spices, oils, and packaging materials.
+## 🛡️ Security & Privacy Best Practices
+- All sensitive API keys, OAuth tokens, Spreadsheet IDs, and Telegram Chat IDs have been sanitized from `workflows/customer-sentiment-analyzer.json`.
+- `.gitignore` is pre-configured to prevent accidental commits of `.env` files or raw local workflow exports.
 
 ---
 
-## 📬 Contact
+## 📬 Contact & Connect
 
-Have questions, feedback, or want to collaborate on AI automation workflows? Feel free to reach out:
+Built with 💡 by **Orion Saha (Ferdous Hasan Maruf)** — *AI Workflow Automation & No-Code/Low-Code Builder*
 
-* **Email:** [ferdoushasanmaruf16@gmail.com](mailto:ferdoushasanmaruf16@gmail.com)
-* **GitHub:** [@fhm16](https://github.com/fhm16)
+- **GitHub:** [@fhm16](https://github.com/fhm16)
+- **Email:** [ferdoushasanmaruf16@gmail.com](mailto:ferdoushasanmaruf16@gmail.com)
