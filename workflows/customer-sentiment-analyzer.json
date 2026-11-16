@@ -1,0 +1,306 @@
+{
+  "name": "Customer Sentiment Analyzer & Emergency Flagger",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_INPUT_GOOGLE_SHEET_URL",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "YOUR_SHEET_GID",
+          "mode": "list",
+          "cachedResultName": "Form responses 1",
+          "cachedResultUrl": "YOUR_INPUT_GOOGLE_SHEET_URL"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        96
+      ],
+      "id": "4cb58f2b-da00-461f-9800-b3fb216a5bb9",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_TRIGGER_CREDENTIAL_ID",
+          "name": "Your Google Sheets Trigger Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert Customer Experience Analyst. Analyze the customer review provided below. Output ONLY a valid JSON object without any markdown tags (do not use ```json) or extra text.\nThe JSON must contain exactly these three keys:\n\n\"sentiment\": (Positive, Neutral, or Negative)\n\n\"score\": (Number from 1 to 5)\n\n\"urgency\": (High, Medium, or Low. If Negative, it MUST be High)\nCustomer Review:  {{ $json['  Review / Feedback  '] }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        96
+      ],
+      "id": "20a97efb-a3d0-4096-b414-638c9f58bb58",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_API_CREDENTIAL_ID",
+          "name": "Your Google Gemini API Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "2d2cf95f-a96c-435d-97aa-57ec8d1c1241",
+                    "leftValue": "={{ $json.content.parts[0].text }}",
+                    "rightValue": "Negative",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        560,
+        0
+      ],
+      "id": "4f0bcc8a-d52a-424c-8e75-f494ca3d4728",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🚨 EMERGENCY CUSTOMER ALERT 🚨  \n\n👤 Customer: {{ $node[\"Google Sheets Trigger\"].json[\"Customer Name\"] }} \n📧 Email: {{ $node[\"Google Sheets Trigger\"].json[\"Email\"] }} \n💬 Review: {{ $('Google Sheets Trigger').item.json['  Review / Feedback  '] }}  \n⚠️ Urgency: High (Human Review Required) \n📌 Action: Please reach out to the customer immediately!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "67c3c5bc-ab9c-495a-981f-af4c7860410f",
+      "name": "Send a text message",
+      "webhookId": "YOUR_TELEGRAM_WEBHOOK_ID",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_BOT_CREDENTIAL_ID",
+          "name": "Your Telegram Bot Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_ANALYTICS_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Customer Analytics Log",
+          "cachedResultUrl": "YOUR_ANALYTICS_GOOGLE_SHEET_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_ANALYTICS_GOOGLE_SHEET_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer Name": "={{ $node[\"Google Sheets Trigger\"].json[\"Customer Name\"] }}",
+            "Email": "={{ $node[\"Google Sheets Trigger\"].json[\"Email\"] }}",
+            "Review": "={{ $('Google Sheets Trigger').item.json['  Review / Feedback  '] }}",
+            "Sentiment": "={{ JSON.parse($json.content.parts[0].text).sentiment }}",
+            "Score": "={{ JSON.parse($json.content.parts[0].text).score }}",
+            "Urgency": "={{ JSON.parse($json.content.parts[0].text).urgency }}",
+            "Timestamp": "={{ $node[\"Google Sheets Trigger\"].json[\"Timestamp\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Review",
+              "displayName": "Review",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Urgency",
+              "displayName": "Urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        192
+      ],
+      "id": "fa271295-83db-4b67-ac09-b80c0c99d43a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Your Google Sheets Account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": []
+}
